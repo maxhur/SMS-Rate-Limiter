@@ -36,8 +36,8 @@ namespace smsRateRegulator.Tests
       var request = new SmsRateRequest
       {
         PhoneNumber = "(123) 456-7890",
-        maxPerPhoneNumberPerSecond = 2,
-        maxPerAccountPerSecond = 5
+        PerNumberLimitPerSecond = 2,
+        PerAccountLimitPerSecond = 5
       };
 
       var result = controller.CanSend(request) as OkObjectResult;
@@ -56,8 +56,8 @@ namespace smsRateRegulator.Tests
       var request = new SmsRateRequest
       {
         PhoneNumber = null,
-        maxPerPhoneNumberPerSecond = 2,
-        maxPerAccountPerSecond = 5
+        PerNumberLimitPerSecond = 2,
+        PerAccountLimitPerSecond = 5
       };
 
       var result = controller.CanSend(request);
@@ -74,9 +74,10 @@ namespace smsRateRegulator.Tests
       var request = new SmsRateRequest
       {
         PhoneNumber = "1234567890",
-        maxPerPhoneNumberPerSecond = 1,
-        maxPerAccountPerSecond = 5
+        PerNumberLimitPerSecond = 1,
+        PerAccountLimitPerSecond = 5
       };
+
 
       // First call: allowed
       var result1 = controller.CanSend(request) as OkObjectResult;

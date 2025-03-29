@@ -15,15 +15,24 @@ namespace smsRateRegulator.Controllers
             _rateService = rateService;
         }
 
+        /// <summary>
+        /// Determines if a message can be sent from the specified phone number without exceeding rate limits.
+        /// </summary>
+        /// <param name="request">Contains the phone number and optional rate limits.</param>
+        /// <returns>A boolean flag indicating whether the message can be sent.</returns>
         [HttpPost("isSendAllowed")]
         [ProducesResponseType(typeof(SmsRateResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult CanSend([FromBody] SmsRateRequest request)
         {
             if (string.IsNullOrWhiteSpace(request?.PhoneNumber))
                 return BadRequest("Phone number is required.");
 
+            int perNumberLimit = request.PerNumberLimitPerSecond;
+            int perAccountLimit = request.PerAccountLimitPerSecond;
+            
             var cleanedPhoneNumber = CleanPhoneNumber(request.PhoneNumber);
-            var isAllowed = _rateService.IsSendAllowed(cleanedPhoneNumber);
+            var isAllowed = _rateService.IsSendAllowed(cleanedPhoneNumber, perNumberLimit, perAccountLimit);
 
             return Ok(new SmsRateResponse { CanSend = isAllowed });
         }

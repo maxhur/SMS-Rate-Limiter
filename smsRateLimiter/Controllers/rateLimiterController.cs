@@ -23,7 +23,15 @@ namespace smsRateRegulator.Controllers
                 return BadRequest("Phone number is required.");
 
             var cleanedPhoneNumber = CleanPhoneNumber(request.PhoneNumber);
-            var isAllowed = _rateService.IsSendAllowed(cleanedPhoneNumber);
+            int maxPerPhoneNumberPerSecond = request.maxPerPhoneNumberPerSecond;
+            int maxPerAccountPerSecond = request.maxPerAccountPerSecond;
+
+            // Check if the rate limits are exceeded
+            // if (maxPerPhoneNumberPerSecond <= 0 || maxPerAccountPerSecond <= 0)
+            //     throw new ArgumentOutOfRangeException("Rate limits must be greater than zero.");
+
+
+            var isAllowed = _rateService.IsSendAllowed(cleanedPhoneNumber, maxPerPhoneNumberPerSecond, maxPerAccountPerSecond);
 
             return Ok(new SmsRateResponse { CanSend = isAllowed });
         }

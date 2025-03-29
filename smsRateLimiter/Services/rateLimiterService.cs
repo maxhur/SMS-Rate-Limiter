@@ -33,19 +33,30 @@ namespace SmsRateLimiter.Services
     }
 
     // This method checks if sending is allowed based on the rate limits
-    public bool IsSendAllowed(string phoneNumber)
+    public bool IsSendAllowed(string phoneNumber, int maxPerPhoneNumberPerSecond, int maxPerAccountPerSecond)
     {
-      var numberCount = _perNumberCounter.AddOrUpdate(phoneNumber, 1, (key, prev) => prev + 1);
-      var accountCount = Interlocked.Increment(ref _accountCounter);
-
-      if (numberCount > _maxPerNumber || accountCount > _maxPerAccount)
+      // Check if the rate limits are exceeded
+      if (maxPerPhoneNumberPerSecond <= 0 || maxPerAccountPerSecond <= 0)
       {
-        _perNumberCounter.AddOrUpdate(phoneNumber, 0, (key, prev) => Math.Max(0, prev - 1));
-        Interlocked.Decrement(ref _accountCounter);
-        return false;
+        // set system Default
+        maxPerPhoneNumberPerSecond = _maxPerNumber;
+        maxPerAccountPerSecond = _maxPerAccount;
       }
 
-      return true;
+      // Update the counters atomically
+      {
+        var numberCount = _perNumberCounter.AddOrUpdate(phoneNumber, 1, (key, prev) => prev + 1);
+        var accountCount = Interlocked.Increment(ref _accountCounter);
+
+        if (numberCount > maxPerPhoneNumberPerSecond || accountCount > maxPerAccountPerSecond)
+        {
+          _perNumberCounter.AddOrUpdate(phoneNumber, 0, (key, prev) => Math.Max(0, prev - 1));
+          Interlocked.Decrement(ref _accountCounter);
+          return false;
+        }
+
+        return true;
+      }
     }
 
     // Dispose the timer when the service is disposed
